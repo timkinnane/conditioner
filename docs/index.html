@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>index.coffee</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>index.coffee</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>_ = <span class="hljs-built_in">require</span> <span class="hljs-string">'underscore'</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>convert sets of semantic key/vale conditions to regex capture groups
+also accepts straight regex or strings to convert to regex
+if an array is given, multiple conditions can be combined
+config determines flags and pre-filtering input</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Conditioner</span></span>
+  constructor: <span class="hljs-function"><span class="hljs-params">(condition, options={})</span> -&gt;</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>merge defaults and options to get config</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @config = _.defaults options,
+      matchWords: <span class="hljs-literal">true</span>
+      ignoreCase: <span class="hljs-literal">true</span>
+      ignorePunctuation: <span class="hljs-literal">true</span>
+      escapeValues: <span class="hljs-literal">false</span>
+    @b = <span class="hljs-keyword">if</span> @config.matchWords <span class="hljs-keyword">then</span> <span class="hljs-string">'\\b'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">''</span> <span class="hljs-comment"># word boundary capture toggle</span>
+    @i = <span class="hljs-keyword">if</span> @config.ignoreCase <span class="hljs-keyword">then</span> <span class="hljs-string">'i'</span> <span class="hljs-keyword">else</span> <span class="hljs-string">''</span> <span class="hljs-comment"># ignore case flag toggle</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>register expression converter type keys - could be querired or extended</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @types = [
+      <span class="hljs-string">'is'</span>,<span class="hljs-string">'starts'</span>,<span class="hljs-string">'ends'</span>,<span class="hljs-string">'contains'</span>,<span class="hljs-string">'excludes'</span>,<span class="hljs-string">'after'</span>,<span class="hljs-string">'before'</span>,<span class="hljs-string">'range'</span>
+    ]</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>TODO: Use method to register default types allowing extended converters</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>generate expressions from given conditions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    @expressions = {}
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> condition <span class="hljs-keyword">is</span> <span class="hljs-string">'array'</span> <span class="hljs-comment"># add each condition in array</span>
+      @add c <span class="hljs-keyword">for</span> c <span class="hljs-keyword">in</span> condition
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> condition <span class="hljs-keyword">is</span> <span class="hljs-string">'object'</span> <span class="hljs-comment"># add each key/val as a condition</span>
+      <span class="hljs-keyword">for</span> key,val <span class="hljs-keyword">of</span> condition
+        c = {}
+        c[key] = val
+        @add c
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> condition? <span class="hljs-keyword">then</span> @add condition <span class="hljs-comment"># add whatever was given as condition</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>add conditions to compare or capture with, converted if not already regex</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  add: <span class="hljs-function"><span class="hljs-params">(condition, key)</span> -&gt;</span>
+    key ?= _.size @expressions <span class="hljs-comment"># use int index if no named key</span>
+    <span class="hljs-keyword">switch</span>
+      <span class="hljs-keyword">when</span> _.isRegExp condition
+        @expressions[key] = condition
+      <span class="hljs-keyword">when</span> <span class="hljs-keyword">typeof</span> condition <span class="hljs-keyword">is</span> <span class="hljs-string">'string'</span>
+        @expressions[key] = @toRegExp condition
+      <span class="hljs-keyword">when</span> <span class="hljs-keyword">typeof</span> condition <span class="hljs-keyword">is</span> <span class="hljs-string">'object'</span>
+        <span class="hljs-keyword">for</span> type, value <span class="hljs-keyword">of</span> condition
+          @expressions[key] = @create type, value
+    <span class="hljs-keyword">return</span> @ <span class="hljs-comment"># return self for chaining adds</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>convert strings to regular expressions</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  toRegExp: <span class="hljs-function"><span class="hljs-params">(str)</span> -&gt;</span>
+    match = str.match <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">'^/(.+)/(.*)$'</span>
+    re = <span class="hljs-keyword">new</span> RegExp match[<span class="hljs-number">1</span>], match[<span class="hljs-number">2</span>] <span class="hljs-keyword">if</span> match
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"<span class="hljs-subst">#{str}</span> can not converted to RegExp"</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.isRegExp re
+    <span class="hljs-keyword">return</span> re</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>var regex = new RegExp(‘^/(.+)/(.*)$’);
+var match = s.match(regex);
+if (match) {
+  return new RegExp(match[1], match[2]);
+}</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>escape any special regex characters</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  escapeRegExp: <span class="hljs-function"><span class="hljs-params">(str)</span> -&gt;</span>
+    str.replace <span class="hljs-regexp">/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g</span>, <span class="hljs-string">"\\$&amp;"</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>create regex for a value from various condition types</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  create: <span class="hljs-function"><span class="hljs-params">(type, value)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">unless</span> <span class="hljs-keyword">typeof</span> value <span class="hljs-keyword">is</span> <span class="hljs-string">'string'</span>
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error <span class="hljs-string">"<span class="hljs-subst">#{type}</span> is an invalid condition type"</span> <span class="hljs-keyword">if</span> type <span class="hljs-keyword">not</span> <span class="hljs-keyword">in</span> @types
+    value = @escapeRegExp value <span class="hljs-keyword">if</span> @config.escapeValues
+    <span class="hljs-keyword">switch</span> type</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>match the whole thing</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'is'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"^(<span class="hljs-subst">#{value}</span>)$"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>match the beginning / first word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'starts'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"^(<span class="hljs-subst">#{value}</span>)<span class="hljs-subst">#{@b}</span>"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>match the end / last word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'ends'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"<span class="hljs-subst">#{@b}</span>(<span class="hljs-subst">#{value}</span>)$"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>match a part / word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'contains'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"<span class="hljs-subst">#{@b}</span>(<span class="hljs-subst">#{value}</span>)<span class="hljs-subst">#{@b}</span>"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>exclude a part / word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'excludes'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"^((?!<span class="hljs-subst">#{@b}</span><span class="hljs-subst">#{value}</span><span class="hljs-subst">#{@b}</span>).)*$"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>match anything after value / next word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'after'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"(?:<span class="hljs-subst">#{value}</span>\\s)([\\w\\-]+)"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>match anything before value / prev word (if matchWords)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'before'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"<span class="hljs-subst">#{@b}</span>([\\w\\-]+)(?:\\s<span class="hljs-subst">#{value}</span>)"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>match a given range - NB: only between 0-999 (otherwise use regexp)</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">when</span> <span class="hljs-string">'range'</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> RegExp <span class="hljs-string">"<span class="hljs-subst">#{@b}</span>([<span class="hljs-subst">#{value}</span>]|[<span class="hljs-subst">#{value}</span>][0-9]|[<span class="hljs-subst">#{value}</span>][0-9][0-9])<span class="hljs-subst">#{@b}</span>"</span>, @i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>test a string against stored conditions and config
+returns successful if all conditions meet
+each conditions outcome saved to this.compared, for individual checks
+full match properties can be accessed from this.matches</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  compare: <span class="hljs-function"><span class="hljs-params">(str)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.size @expressions <span class="hljs-comment"># nothing to compare</span>
+    str = str.replace <span class="hljs-regexp">/[^\w\s]/g</span>, <span class="hljs-string">''</span> <span class="hljs-keyword">if</span> @config.ignorePunctuation
+    @matches = _.mapObject @expressions, <span class="hljs-function"><span class="hljs-params">(re)</span> -&gt;</span> str.match re
+    @compared = _.mapObject @matches, <span class="hljs-function"><span class="hljs-params">(match)</span> -&gt;</span> match?
+    <span class="hljs-keyword">return</span> _.every _.values @compared <span class="hljs-comment"># true if all truthy</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>extract parts of a string matching conditions
+returns array of captured parts (also available as this.captured)
+full match properties can be accessed from this.matches</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  capture: <span class="hljs-function"><span class="hljs-params">(str)</span> -&gt;</span>
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span> <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> _.size @expressions <span class="hljs-comment"># nothing to capture</span>
+    str = str.replace <span class="hljs-regexp">/[^\w\s]/g</span>, <span class="hljs-string">''</span> <span class="hljs-keyword">if</span> @config.ignorePunctuation
+    @matches = _.mapObject @expressions, <span class="hljs-function"><span class="hljs-params">(re)</span> -&gt;</span> str.match re
+    @captured = _.mapObject @matches, <span class="hljs-function"><span class="hljs-params">(match)</span> -&gt;</span> match?[<span class="hljs-number">1</span>]
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> _.some @captured <span class="hljs-keyword">then</span> @captured <span class="hljs-keyword">else</span> <span class="hljs-literal">false</span> <span class="hljs-comment"># false if none truthy</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>clear results but keep expressions and config</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  clear: <span class="hljs-function">-&gt;</span>
+    <span class="hljs-keyword">delete</span> @captured
+    <span class="hljs-keyword">delete</span> @compared
+    <span class="hljs-keyword">delete</span> @matches</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>clear expressions too, just keep config</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  clearAll: <span class="hljs-function">-&gt;</span>
+    @clear()
+    @expressions = {}
+
+<span class="hljs-built_in">module</span>.exports = Conditioner</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
