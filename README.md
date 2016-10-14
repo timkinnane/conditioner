@@ -136,25 +136,49 @@ Clears results and conditions.
 
 ---
 
-## Full Example (uses underscore)
+## Full Example
 
 ```coffeescript
 
-# coffee order conditions for validity
-order = new Conditioner()
-  .add starts: 'order|get'
-  .add contains: 'coffee(s)?', 'word'
-  .add excludes: 'not'
+# determine replies to an array of coffee (or possibly not) orders
+replyToOrders = (orders) ->
 
-# coffee order details
-deets = new Conditioner()
-  .add contains: 'me', 'forSelf'
-  .add range: '1-999', 'qty'
-  .add after: 'for', 'for'
-  .add ends: 'please', 'polite'
+  # order conditions for validity
+  validity = new Conditioner()
+    .add starts: 'order|get'
+    .add contains: 'coffee(s)?', 'coffeePlural'
+    .add excludes: 'not'
+
+  # order details
+  deets = new Conditioner()
+    .add contains: 'me', 'forSelf'
+    .add range: '1-999', 'qty'
+    .add after: 'for', 'for'
+    .add ends: 'please', 'polite'
+
+  orders.map (order) ->
+    detail = deets.capture order # capture details
+    valid = validity.compare order # test validity
+
+    # get parts
+    coffeePlural = validity.matches.coffeePlural?[0] # coffee, coffees or undefined
+    qty = detail.qty ? '1'
+    who = if detail.forSelf then "you" else detail.for ? "I dunno?"
+    polite = if detail.polite then yes else no
+
+    # compose
+    switch
+      when valid and polite
+        "#{ qty } #{ coffeePlural } for #{ who }. Have a nice day :)"
+      when valid
+        "#{ qty } #{ coffeePlural } for #{ who }"
+      when not valid and polite
+        "Sorry, no."
+      else
+        "No coffee for you."
 
 # coffee orders, input received
-strings = [
+orders = [
   'Order me a coffee please'
   'Order 2 coffees for Otis'
   'Get me 100 coffees'
@@ -163,39 +187,18 @@ strings = [
   'I love lamp'
 ]
 
-# determine replies
-replies = _.map strings, (str) ->
-  detail = deets.capture str # capture details
-  valid = order.compare str # test validity
+console.log replyToOrders orders
 
-  # get parts
-  word = order.matches.word?[0] # coffee, coffees or undefined
-  qty = detail.qty ? '1'
-  who = if detail.forSelf then "you" else detail.for ? "I dunno?"
-  polite = if detail.polite then yes else no
+###
+Outputs:
+[ '1 coffee for you. Have a nice day :)',
+  '2 coffees for Otis',
+  '100 coffees for you',
+  'No coffee for you.',
+  'Sorry, no.',
+  'No coffee for you.' ]
+###
 
-  # compose
-  switch
-    when valid and polite
-      "#{ qty } #{ word } for #{ who }. Have a nice day :)"
-    when valid
-      "#{ qty } #{ word } for #{ who }"
-    when not valid and polite
-      "Sorry, no."
-    else
-      "No coffee for you."
-
-# outputs
-console.log replies
-# ==
-# [
-#   '1 coffee for you. Have a nice day :)'
-#   '2 coffees for Otis'
-#   '100 coffees for you'
-#   'No coffee for you.'
-#   'Sorry, no.'
-#   'No coffee for you.'
-# ]
 ```
 
 ---
