@@ -1,6 +1,6 @@
 {
   "name": "conditioner-regex",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Convert sets of semantic key/vale conditions to regex capture groups",
   "main": "dist/index.js",
   "scripts": {
