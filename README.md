@@ -1,6 +1,6 @@
 ![Conditioner - Regex in a bottle](https://raw.githubusercontent.com/timkinnane/conditioner/master/assets/logo.png)
 
-[![NPM version][npm-image]][npm-url]]
+[![NPM version][npm-image]][npm-url]
 
 > NB: This is a beta release, features are stable but documentation and coverage is incomplete.
 
@@ -12,10 +12,6 @@ It isn't intended to replace the full power of regex, just simplify it for some
 common use cases.
 
 It was developed specifically for messanging and chat-bot scripts, to compare conversational streams against listeners and capture user inputs with easy to reference keys.
-
-## Installation
-
-`npm install conditioner-regex --save`
 
 ---
 
@@ -58,11 +54,13 @@ Set to true if you actually need to match against special characters.
 
 > NB: It's written in coffee-script so that's what I use in demos, however the dist is compiled to js
 
-Require the module. `Conditioner = require 'conditioner-regex'`
+Install: `npm install conditioner-regex --save`
 
-### `new Conditioner( conditions, options )`
+Require: `Conditioner = require 'conditioner-regex'`
 
-Create a Conditioner object with some conditions. e.g.
+Initialize: `new Conditioner( [conditions[, options]] )`
+
+Or (optionally) with some conditions and options...
 
 ```coffeescript
 c = new Conditioner
@@ -141,6 +139,20 @@ Clears results and conditions.
 ## Full Example (uses underscore)
 
 ```coffeescript
+
+# coffee order conditions for validity
+order = new Conditioner()
+  .add starts: 'order|get'
+  .add contains: 'coffee(s)?', 'word'
+  .add excludes: 'not'
+
+# coffee order details
+deets = new Conditioner()
+  .add contains: 'me', 'forSelf'
+  .add range: '1-999', 'qty'
+  .add after: 'for', 'for'
+  .add ends: 'please', 'polite'
+
 # coffee orders, input received
 strings = [
   'Order me a coffee please'
@@ -151,29 +163,18 @@ strings = [
   'I love lamp'
 ]
 
-# coffee order and details conditions
-order = new Conditioner()
-  .add starts: 'order|get'
-  .add contains: 'coffee(s)?', 'word'
-  .add excludes: 'not'
-deets = new Conditioner()
-  .add contains: 'me', 'forSelf'
-  .add range: '1-999', 'qty'
-  .add after: 'for', 'for'
-  .add ends: 'please', 'polite'
-
-# determine reply
+# determine replies
 replies = _.map strings, (str) ->
   detail = deets.capture str # capture details
   valid = order.compare str # test validity
 
-  # get reply parts
-  word = order.matches.word?[0] ? '?'
+  # get parts
+  word = order.matches.word?[0] # coffee, coffees or undefined
   qty = detail.qty ? '1'
   who = if detail.forSelf then "you" else detail.for ? "I dunno?"
   polite = if detail.polite then yes else no
 
-  # compose replies
+  # compose
   switch
     when valid and polite
       "#{ qty } #{ word } for #{ who }. Have a nice day :)"
